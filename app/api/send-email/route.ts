@@ -28,7 +28,11 @@ export async function POST(request: Request) {
     await transporter.sendMail(mailOptions);
 
     return NextResponse.json({ message: 'Email sent successfully' }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+  } catch (error: unknown) {
+    let errorMessage = 'Internal server error';
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
