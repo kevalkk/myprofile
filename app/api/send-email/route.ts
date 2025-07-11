@@ -6,23 +6,23 @@ export async function POST(request: Request) {
     const { name, email, message } = await request.json();
 
     // Check if Gmail credentials are available
-    if (!process.env.BREVO_USER || !process.env.BREVO_PASS) {
+    if (!process.env.MAIL_HOST || !process.env.MAIL_PORT || !process.env.MAIL_USERNAME || !process.env.MAIL_PASSWORD || !process.env.MAIL_FROM_ADDRESS || !process.env.MAIL_FROM_NAME) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
     }
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false, // use TLS
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT),
+      secure: false, // upgrade later with STARTTLS
       auth: {
-        user: process.env.BREVO_USER,
-        pass: process.env.BREVO_PASS,
+        user: process.env.MAIL_USERNAME,
+        pass: process.env.MAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: email,
-      to: process.env.BREVO_USER,
+      from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM_ADDRESS}>`,
+      to: process.env.MAIL_FROM_ADDRESS,
       subject: `New Message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
