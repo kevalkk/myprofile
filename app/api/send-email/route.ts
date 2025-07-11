@@ -1,30 +1,34 @@
-import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
     const { name, email, message } = await request.json();
 
-    // Check if API key is available
-    if (!process.env.RESEND_API_KEY) {
+    // Check if Gmail credentials are available
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
     }
 
-    const { error } = await resend.emails.send({
-      from: 'Portfolio Contact <onboarding@resend.dev>',
-      to: ['keval.mer@gmail.com'],
-      subject: `New Message from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
     });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const mailOptions = {
+      from: email,
+      to: process.env.GMAIL_USER,
+      subject: `New Message from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     return NextResponse.json({ message: 'Email sent successfully' }, { status: 200 });
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
