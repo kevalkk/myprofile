@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const mailOptions = {
       from: email,
-      to: process.env.BREVO_USER,
+      to: 'keval.mer@gmail.com',
       subject: `New Message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
